@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artificial Life Simulations</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Artificial Life Simulations</h1>
+        <p>Explore 10 different artificial life systems</p>
+    </header>
+    
+    <main>
+        <aside class="controls">
+            <h2>Select Simulation</h2>
+            <nav class="simulation-list">
+                <button data-sim="gameOfLife" class="sim-button active">Conway's Game of Life</button>
+                <button data-sim="langtonsAnt" class="sim-button">Langton's Ant</button>
+                <button data-sim="boids" class="sim-button">Boids Flocking</button>
+                <button data-sim="lSystem" class="sim-button">L-System Plants</button>
+                <button data-sim="particleLife" class="sim-button">Particle Life</button>
+                <button data-sim="reactionDiffusion" class="sim-button">Reaction-Diffusion</button>
+                <button data-sim="evolution" class="sim-button">Evolutionary Steering</button>
+                <button data-sim="cellular1d" class="sim-button">1D Cellular Automata</button>
+                <button data-sim="slimeMold" class="sim-button">Slime Mold</button>
+                <button data-sim="neuralCreatures" class="sim-button">Neural Creatures</button>
+            </nav>
+            
+            <div class="simulation-controls">
+                <h3>Controls</h3>
+                <button id="playPause" class="control-button">Pause</button>
+                <button id="reset" class="control-button">Reset</button>
+                <button id="clear" class="control-button">Clear</button>
+                
+                <div class="speed-control">
+                    <label for="speedSlider">Speed:</label>
+                    <input type="range" id="speedSlider" min="1" max="60" value="30">
+                    <span id="speedValue">30 FPS</span>
+                </div>
+                
+                <div id="simulationParams" class="params-container">
+                    <!-- Dynamic parameters will be inserted here -->
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h3>About</h3>
+                <div id="simulationInfo">
+                    <!-- Dynamic simulation info will be inserted here -->
+                </div>
+            </div>
+        </aside>
+        
+        <section class="canvas-container">
+            <canvas id="simulationCanvas"></canvas>
+            <div id="stats" class="stats-overlay"></div>
+        </section>
+    </main>
+    
+    <script src="js/utils.js"></script>
+    <script src="js/base-simulation.js"></script>
+    <script src="js/simulations/game-of-life.js"></script>
+    <script src="js/simulations/langtons-ant.js"></script>
+    <script src="js/simulations/boids.js"></script>
+    <script src="js/simulations/l-system.js"></script>
+    <script src="js/simulations/particle-life.js"></script>
+    <script src="js/simulations/reaction-diffusion.js"></script>
+    <script src="js/simulations/evolution.js"></script>
+    <script src="js/simulations/cellular-1d.js"></script>
+    <script src="js/simulations/slime-mold.js"></script>
+    <script src="js/simulations/neural-creatures.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
