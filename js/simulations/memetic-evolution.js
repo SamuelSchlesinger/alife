@@ -53,9 +53,9 @@ class MemeticEvolution extends BaseSimulation {
         this.culturalCenters = [];
         
         // Parameters
-        this.agentCount = 100;
-        this.resourceDensity = 0.002;
-        this.learningRadius = 50;
+        this.agentCount = 500;
+        this.resourceDensity = 0.0015;
+        this.learningRadius = 30;
         this.innovationRate = 0.001;
         this.conformityBias = 0.7;
         this.prestigeBias = 0.8;
@@ -187,7 +187,7 @@ class MemeticEvolution extends BaseSimulation {
                 observationRadius: this.learningRadius,
                 innovativeness: Math.random(),
                 conformity: Math.random(),
-                size: 8,
+                size: 4,
                 experiences: [],
                 knownDangers: new Set(),
                 knownResources: new Set(),
@@ -197,11 +197,11 @@ class MemeticEvolution extends BaseSimulation {
         }
         
         // Create initial cultural centers
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
             this.culturalCenters.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
-                radius: 80 + Math.random() * 40,
+                radius: 50 + Math.random() * 30,
                 strength: 0.5,
                 dominantMeme: null
             });
@@ -216,33 +216,33 @@ class MemeticEvolution extends BaseSimulation {
     
     createEnvironmentalFeatures() {
         // Create landmarks (neutral features that can become culturally significant)
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 8; i++) {
             this.landmarks.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
-                type: ['stone', 'tree', 'water', 'hill', 'cave'][i],
+                type: ['stone', 'tree', 'water', 'hill', 'cave', 'stone', 'tree', 'water'][i],
                 culturalSignificance: 0,
                 stories: []
             });
         }
         
         // Create danger zones
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
             this.dangerZones.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
-                radius: 40 + Math.random() * 30,
+                radius: 30 + Math.random() * 20,
                 severity: 0.5 + Math.random() * 0.5,
                 discovered: false
             });
         }
         
         // Create abundant zones
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 6; i++) {
             this.abundantZones.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
-                radius: 50 + Math.random() * 40,
+                radius: 40 + Math.random() * 30,
                 richness: 0.5 + Math.random() * 0.5,
                 discovered: false
             });
@@ -261,8 +261,8 @@ class MemeticEvolution extends BaseSimulation {
                 // Add movement properties for prey
                 vx: isPrey ? (Math.random() - 0.5) * 1 : 0,
                 vy: isPrey ? (Math.random() - 0.5) * 1 : 0,
-                detectionRadius: isPrey ? 60 : 0,
-                fleeSpeed: isPrey ? 2.5 : 0
+                detectionRadius: isPrey ? 40 : 0,
+                fleeSpeed: isPrey ? 2 : 0
             });
         }
     }
@@ -330,7 +330,7 @@ class MemeticEvolution extends BaseSimulation {
             agent.prestige *= 0.995;
             
             // Leave cultural trail
-            if (Math.random() < 0.1 && agent.trailIntensity > 0.1) {
+            if (Math.random() < 0.05 && agent.trailIntensity > 0.1) {
                 this.culturalTrails.push({
                     x: agent.x,
                     y: agent.y,
@@ -435,7 +435,7 @@ class MemeticEvolution extends BaseSimulation {
     }
     
     applySeparation(agent) {
-        const separationRadius = agent.size * 3; // Separation distance
+        const separationRadius = agent.size * 2.5; // Separation distance
         const separationForce = 0.5; // Strength of separation
         
         let separationX = 0;
@@ -755,7 +755,7 @@ class MemeticEvolution extends BaseSimulation {
         });
         
         // Replenish resources
-        if (Math.random() < 0.05) {
+        if (Math.random() < 0.1) {
             const isPrey = Math.random() < 0.5;
             this.resources.push({
                 x: Math.random() * this.canvas.width,
@@ -765,8 +765,8 @@ class MemeticEvolution extends BaseSimulation {
                 // Add movement properties for prey
                 vx: isPrey ? (Math.random() - 0.5) * 1 : 0,
                 vy: isPrey ? (Math.random() - 0.5) * 1 : 0,
-                detectionRadius: isPrey ? 60 : 0,
-                fleeSpeed: isPrey ? 2.5 : 0
+                detectionRadius: isPrey ? 40 : 0,
+                fleeSpeed: isPrey ? 2 : 0
             });
         }
     }
@@ -801,7 +801,7 @@ class MemeticEvolution extends BaseSimulation {
                 
                 // Enhanced learning in cultural centers
                 agentsInCenter.forEach(agent => {
-                    agent.observationRadius = this.learningRadius * 1.5;
+                    agent.observationRadius = this.learningRadius * 1.3;
                 });
             } else {
                 center.dominantMeme = null;
@@ -894,7 +894,7 @@ class MemeticEvolution extends BaseSimulation {
             }
             
             // Reproduction
-            if (agent.energy > agent.maxEnergy * 0.8 && this.agents.length < 200) {
+            if (agent.energy > agent.maxEnergy * 0.8 && this.agents.length < 800) {
                 const offspring = {
                     x: agent.x + (Math.random() - 0.5) * 30,
                     y: agent.y + (Math.random() - 0.5) * 30,
@@ -911,7 +911,7 @@ class MemeticEvolution extends BaseSimulation {
                     observationRadius: this.learningRadius,
                     innovativeness: agent.innovativeness + (Math.random() - 0.5) * 0.1,
                     conformity: agent.conformity + (Math.random() - 0.5) * 0.1,
-                    size: 8,
+                    size: 4,
                     experiences: [],
                     knownDangers: new Set(),
                     knownResources: new Set(),
@@ -1005,7 +1005,7 @@ class MemeticEvolution extends BaseSimulation {
                 observationRadius: this.learningRadius,
                 innovativeness: Math.random(),
                 conformity: Math.random(),
-                size: 8,
+                size: 4,
                 experiences: [],
                 knownDangers: new Set(),
                 knownResources: new Set(),
@@ -1212,7 +1212,7 @@ class MemeticEvolution extends BaseSimulation {
             }
             
             // Landmark symbol
-            this.ctx.font = '20px Arial';
+            this.ctx.font = '16px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(symbols[landmark.type] || '📍', landmark.x, landmark.y);
@@ -1356,7 +1356,7 @@ class MemeticEvolution extends BaseSimulation {
         
         // Draw resources with enhanced visuals
         this.resources.forEach(resource => {
-            const size = resource.value / 2;
+            const size = resource.value / 4; // Reduced from /2 to /4
             
             // Glow effect
             const grd = this.ctx.createRadialGradient(resource.x, resource.y, 0, resource.x, resource.y, size * 2);
@@ -1396,35 +1396,25 @@ class MemeticEvolution extends BaseSimulation {
             this.learningEffects.forEach(effect => {
                 const alpha = Math.max(0, 1 - effect.age / 30);
                 
-                // Create curved path for learning connection
-                const midX = (effect.x1 + effect.x2) / 2;
-                const midY = (effect.y1 + effect.y2) / 2;
-                const curve = Math.sin(effect.age * 0.3) * 20;
-                
-                this.ctx.strokeStyle = effect.color.replace('0.8', alpha * 0.6);
-                this.ctx.lineWidth = 3 * alpha;
-                this.ctx.shadowBlur = 10 * alpha;
-                this.ctx.shadowColor = effect.color;
+                this.ctx.strokeStyle = effect.color.replace('0.8', alpha * 0.4);
+                this.ctx.lineWidth = 2 * alpha;
                 
                 this.ctx.beginPath();
                 this.ctx.moveTo(effect.x1, effect.y1);
-                this.ctx.quadraticCurveTo(
-                    midX + curve, midY - curve,
-                    effect.x2, effect.y2
-                );
+                this.ctx.lineTo(effect.x2, effect.y2);
                 this.ctx.stroke();
-                
-                this.ctx.shadowBlur = 0;
             });
         }
         
-        // Draw cultural bonds
-        this.agents.forEach(agent => {
+        // Draw cultural bonds (sample for performance)
+        const bondSample = Math.floor(this.agents.length / 100);
+        for (let i = 0; i < this.agents.length; i += Math.max(1, bondSample)) {
+            const agent = this.agents[i];
             if (agent.culturalBonds && agent.culturalBonds.forEach) {
                 agent.culturalBonds.forEach(bond => {
-                if (bond.strength > 0.3) {
-                    this.ctx.strokeStyle = `rgba(255, 255, 255, ${bond.strength * 0.1})`;
-                    this.ctx.lineWidth = bond.strength * 2;
+                if (bond.strength > 0.5) {
+                    this.ctx.strokeStyle = `rgba(255, 255, 255, ${bond.strength * 0.05})`;
+                    this.ctx.lineWidth = 1;
                     this.ctx.beginPath();
                     this.ctx.moveTo(agent.x, agent.y);
                     this.ctx.lineTo(bond.partner.x, bond.partner.y);
@@ -1432,12 +1422,12 @@ class MemeticEvolution extends BaseSimulation {
                 }
                 });
             }
-        });
+        }
         
         // Draw agents with enhanced visuals
         this.agents.forEach(agent => {
             // Prestige aura
-            if (agent.prestige > 5) {
+            if (agent.prestige > 10) {
                 const glowSize = Math.min(agent.prestige / 2, 25);
                 const grd = this.ctx.createRadialGradient(
                     agent.x, agent.y, agent.size,
@@ -1453,7 +1443,7 @@ class MemeticEvolution extends BaseSimulation {
             }
             
             // Knowledge indicator - agents with many experiences have outer ring
-            if (agent.experiences.length > 10) {
+            if (agent.experiences.length > 15) {
                 const knowledge = Math.min(agent.experiences.length / 20, 1);
                 this.ctx.strokeStyle = `rgba(200, 200, 255, ${knowledge * 0.5})`;
                 this.ctx.lineWidth = 2;
@@ -1505,7 +1495,7 @@ class MemeticEvolution extends BaseSimulation {
             }
             
             // Innovation sparkle
-            if (agent.innovativeness > 0.8) {
+            if (agent.innovativeness > 0.9) {
                 const sparkle = Math.sin(Date.now() * 0.01 + agent.age) * 0.5 + 0.5;
                 this.ctx.fillStyle = `rgba(255, 255, 255, ${sparkle})`;
                 this.ctx.beginPath();
@@ -1583,13 +1573,13 @@ class MemeticEvolution extends BaseSimulation {
         this.culturalCenters.push({
             x: x,
             y: y,
-            radius: 60 + Math.random() * 40,
+            radius: 40 + Math.random() * 30,
             strength: 0.5,
             dominantMeme: null
         });
         
         // Limit cultural centers
-        if (this.culturalCenters.length > 5) {
+        if (this.culturalCenters.length > 8) {
             this.culturalCenters.shift();
         }
     }
