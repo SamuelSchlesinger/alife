@@ -252,11 +252,17 @@ class MemeticEvolution extends BaseSimulation {
     scatterResources() {
         const count = Math.floor(this.canvas.width * this.canvas.height * this.resourceDensity);
         for (let i = 0; i < count; i++) {
+            const isPrey = Math.random() < 0.5;
             this.resources.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
                 value: 5 + Math.random() * 10,
-                type: Math.random() < 0.5 ? 'plant' : 'prey'
+                type: isPrey ? 'prey' : 'plant',
+                // Add movement properties for prey
+                vx: isPrey ? (Math.random() - 0.5) * 1 : 0,
+                vy: isPrey ? (Math.random() - 0.5) * 1 : 0,
+                detectionRadius: isPrey ? 60 : 0,
+                fleeSpeed: isPrey ? 2.5 : 0
             });
         }
     }
@@ -264,6 +270,9 @@ class MemeticEvolution extends BaseSimulation {
     update() {
         // Update agents
         this.updateAgents();
+        
+        // Update prey movement
+        this.updatePreyMovement();
         
         // Process cultural learning
         this.processCulturalTransmission();
@@ -297,6 +306,9 @@ class MemeticEvolution extends BaseSimulation {
         this.agents.forEach(agent => {
             // Movement based on meme type
             this.applyMemeBehavior(agent);
+            
+            // Apply separation forces to avoid overlapping
+            this.applySeparation(agent);
             
             // Update position
             agent.x += agent.vx;
@@ -350,6 +362,115 @@ class MemeticEvolution extends BaseSimulation {
                 }
             });
         });
+    }
+    
+    updatePreyMovement() {
+        this.resources.forEach(resource => {
+            if (resource.type === 'prey') {
+                // Find nearest threatening agent
+                let nearestThreat = null;
+                let minDist = Infinity;
+                
+                this.agents.forEach(agent => {
+                    const dx = agent.x - resource.x;
+                    const dy = agent.y - resource.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < resource.detectionRadius && dist < minDist) {
+                        minDist = dist;
+                        nearestThreat = agent;
+                    }
+                });
+                
+                if (nearestThreat) {
+                    // Flee from the nearest threat
+                    const dx = resource.x - nearestThreat.x;
+                    const dy = resource.y - nearestThreat.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 0) {
+                        // Accelerate away from threat
+                        resource.vx += (dx / dist) * resource.fleeSpeed * 0.3;
+                        resource.vy += (dy / dist) * resource.fleeSpeed * 0.3;
+                    }
+                } else {
+                    // Wander randomly when no threat
+                    resource.vx += (Math.random() - 0.5) * 0.2;
+                    resource.vy += (Math.random() - 0.5) * 0.2;
+                    
+                    // Gradually slow down
+                    resource.vx *= 0.95;
+                    resource.vy *= 0.95;
+                }
+                
+                // Apply speed limit
+                const speed = Math.sqrt(resource.vx * resource.vx + resource.vy * resource.vy);
+                if (speed > resource.fleeSpeed) {
+                    resource.vx = (resource.vx / speed) * resource.fleeSpeed;
+                    resource.vy = (resource.vy / speed) * resource.fleeSpeed;
+                }
+                
+                // Update position
+                resource.x += resource.vx;
+                resource.y += resource.vy;
+                
+                // Keep prey within bounds
+                if (resource.x < 10) {
+                    resource.x = 10;
+                    resource.vx = Math.abs(resource.vx);
+                } else if (resource.x > this.canvas.width - 10) {
+                    resource.x = this.canvas.width - 10;
+                    resource.vx = -Math.abs(resource.vx);
+                }
+                
+                if (resource.y < 10) {
+                    resource.y = 10;
+                    resource.vy = Math.abs(resource.vy);
+                } else if (resource.y > this.canvas.height - 10) {
+                    resource.y = this.canvas.height - 10;
+                    resource.vy = -Math.abs(resource.vy);
+                }
+            }
+        });
+    }
+    
+    applySeparation(agent) {
+        const separationRadius = agent.size * 3; // Separation distance
+        const separationForce = 0.5; // Strength of separation
+        
+        let separationX = 0;
+        let separationY = 0;
+        let nearbyCount = 0;
+        
+        this.agents.forEach(other => {
+            if (other === agent) return;
+            
+            const dx = agent.x - other.x;
+            const dy = agent.y - other.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            // If agents are too close, apply separation force
+            if (dist < separationRadius && dist > 0) {
+                // Calculate repulsion force (stronger when closer)
+                const force = (separationRadius - dist) / separationRadius;
+                
+                // Normalize and apply force
+                separationX += (dx / dist) * force;
+                separationY += (dy / dist) * force;
+                nearbyCount++;
+            }
+        });
+        
+        // Apply separation forces if there are nearby agents
+        if (nearbyCount > 0) {
+            // Average the separation forces
+            separationX /= nearbyCount;
+            separationY /= nearbyCount;
+            
+            // Apply separation to velocity
+            agent.vx += separationX * separationForce;
+            agent.vy += separationY * separationForce;
+        }
     }
     
     applyMemeBehavior(agent) {
@@ -635,11 +756,17 @@ class MemeticEvolution extends BaseSimulation {
         
         // Replenish resources
         if (Math.random() < 0.05) {
+            const isPrey = Math.random() < 0.5;
             this.resources.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
                 value: 5 + Math.random() * 10,
-                type: Math.random() < 0.5 ? 'plant' : 'prey'
+                type: isPrey ? 'prey' : 'plant',
+                // Add movement properties for prey
+                vx: isPrey ? (Math.random() - 0.5) * 1 : 0,
+                vy: isPrey ? (Math.random() - 0.5) * 1 : 0,
+                detectionRadius: isPrey ? 60 : 0,
+                fleeSpeed: isPrey ? 2.5 : 0
             });
         }
     }
