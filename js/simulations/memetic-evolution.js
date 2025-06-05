@@ -43,6 +43,13 @@ class MemeticEvolution extends BaseSimulation {
                 efficiency: 0.7,
                 symbol: '💡',
                 traits: { caution: 0.2, cooperation: 0.5, curiosity: 0.9 }
+            },
+            { 
+                id: 'warrior', 
+                color: 'rgba(200, 50, 50, 0.8)', 
+                efficiency: 0.6,
+                symbol: '⚔️',
+                traits: { caution: 0.1, cooperation: 0.3, curiosity: 0.8 }
             }
         ];
         
@@ -192,7 +199,9 @@ class MemeticEvolution extends BaseSimulation {
                 knownDangers: new Set(),
                 knownResources: new Set(),
                 culturalBonds: [],
-                trailIntensity: 1.0
+                trailIntensity: 1.0,
+                lastLearningTime: 0,
+                learningCooldown: 6 + Math.random() * 4 // 0.1-0.17 seconds at 60fps
             });
         }
         
@@ -279,6 +288,9 @@ class MemeticEvolution extends BaseSimulation {
         
         // Process resource gathering
         this.processResourceGathering();
+        
+        // Process combat
+        this.processCombat();
         
         // Process environmental interactions
         this.processEnvironmentalInteractions();
@@ -555,6 +567,36 @@ class MemeticEvolution extends BaseSimulation {
                     agent.vy = (Math.random() - 0.5) * 4;
                 }
                 break;
+                
+            case 'warrior':
+                // Aggressive pursuit of nearby agents
+                const combatRadius = 80;
+                const nearbyTargets = this.findNearby(agent, this.agents, combatRadius)
+                    .filter(other => other.meme.id !== 'warrior'); // Warriors don't attack each other
+                
+                if (nearbyTargets.length > 0) {
+                    // Find weakest target (lowest energy)
+                    let target = nearbyTargets.reduce((weakest, current) => 
+                        current.energy < weakest.energy ? current : weakest
+                    );
+                    
+                    // Pursue target
+                    const dx = target.x - agent.x;
+                    const dy = target.y - agent.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    agent.vx = (dx / dist) * 2.5;
+                    agent.vy = (dy / dist) * 2.5;
+                    
+                    // Mark target for combat
+                    agent.combatTarget = target;
+                } else {
+                    // Patrol behavior when no targets
+                    agent.vx += (Math.random() - 0.5) * 0.8;
+                    agent.vy += (Math.random() - 0.5) * 0.8;
+                    agent.combatTarget = null;
+                }
+                break;
         }
         
         // Apply trait-based modifiers
@@ -615,6 +657,11 @@ class MemeticEvolution extends BaseSimulation {
     
     processCulturalTransmission() {
         this.agents.forEach(learner => {
+            // Check if agent is on learning cooldown
+            if (learner.age < learner.lastLearningTime + learner.learningCooldown) {
+                return; // Still on cooldown, can't learn yet
+            }
+            
             // Find nearby agents to learn from
             const teachers = this.findNearby(learner, this.agents, learner.observationRadius);
             
@@ -675,6 +722,9 @@ class MemeticEvolution extends BaseSimulation {
                 learner.learningEvents++;
                 selectedTeacher.teachingEvents++;
                 selectedTeacher.prestige += 1;
+                
+                // Reset learning cooldown
+                learner.lastLearningTime = learner.age;
                 
                 // Teacher bonus for teacher meme
                 if (selectedTeacher.meme.id === 'teacher') {
@@ -755,7 +805,7 @@ class MemeticEvolution extends BaseSimulation {
         });
         
         // Replenish resources
-        if (Math.random() < 0.1) {
+        if (Math.random() < 0.2) {
             const isPrey = Math.random() < 0.5;
             this.resources.push({
                 x: Math.random() * this.canvas.width,
@@ -769,6 +819,78 @@ class MemeticEvolution extends BaseSimulation {
                 fleeSpeed: isPrey ? 2 : 0
             });
         }
+    }
+    
+    processCombat() {
+        // Warriors attack nearby agents
+        this.agents.forEach(agent => {
+            if (agent.meme.id === 'warrior' && agent.combatTarget) {
+                const target = agent.combatTarget;
+                const dx = target.x - agent.x;
+                const dy = target.y - agent.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                // Attack if within range
+                if (dist < agent.size + target.size + 5) {
+                    // Deal damage
+                    const damage = 10 + Math.random() * 5;
+                    target.energy -= damage;
+                    
+                    // Warrior gains some energy from combat
+                    agent.energy += damage * 0.3;
+                    agent.prestige += 2;
+                    
+                    // Visual combat effect
+                    this.culturalParticles.push({
+                        x: target.x,
+                        y: target.y,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        color: 'rgba(255, 50, 50, 0.8)',
+                        size: 4,
+                        life: 20
+                    });
+                    
+                    // Knockback effect
+                    target.vx += (dx / dist) * -3;
+                    target.vy += (dy / dist) * -3;
+                    
+                    // Target learns to fear warriors
+                    if (target.energy > 0 && Math.random() < 0.3) {
+                        target.experiences.push({
+                            type: 'attacked',
+                            location: { x: agent.x, y: agent.y },
+                            severity: damage
+                        });
+                    }
+                }
+            }
+        });
+        
+        // Non-warriors flee from nearby warriors
+        this.agents.forEach(agent => {
+            if (agent.meme.id !== 'warrior') {
+                const nearbyWarriors = this.findNearby(agent, this.agents, 60)
+                    .filter(other => other.meme.id === 'warrior');
+                
+                if (nearbyWarriors.length > 0) {
+                    // Flee from nearest warrior
+                    const nearestWarrior = this.findNearest(agent, nearbyWarriors);
+                    if (nearestWarrior) {
+                        const dx = agent.x - nearestWarrior.x;
+                        const dy = agent.y - nearestWarrior.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist > 0 && dist < 60) {
+                            // Flee force inversely proportional to distance
+                            const fleeForce = (60 - dist) / 60;
+                            agent.vx += (dx / dist) * fleeForce * 1.5;
+                            agent.vy += (dy / dist) * fleeForce * 1.5;
+                        }
+                    }
+                }
+            }
+        });
     }
     
     updateCulturalCenters() {
@@ -1010,7 +1132,9 @@ class MemeticEvolution extends BaseSimulation {
                 knownDangers: new Set(),
                 knownResources: new Set(),
                 culturalBonds: [],
-                trailIntensity: 1.0
+                trailIntensity: 1.0,
+                lastLearningTime: 0,
+                learningCooldown: 6 + Math.random() * 4 // 0.1-0.17 seconds at 60fps
             };
             
             this.agents.push(newAgent);
@@ -1452,6 +1576,17 @@ class MemeticEvolution extends BaseSimulation {
                 this.ctx.stroke();
             }
             
+            // Warrior combat indicator
+            if (agent.meme.id === 'warrior' && agent.combatTarget) {
+                // Red pulsing circle around warrior
+                const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
+                this.ctx.strokeStyle = `rgba(255, 50, 50, ${pulse * 0.5})`;
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(agent.x, agent.y, agent.size + 8, 0, Math.PI * 2);
+                this.ctx.stroke();
+            }
+            
             // Agent body with gradient
             const bodyGrd = this.ctx.createRadialGradient(
                 agent.x - agent.size/3, agent.y - agent.size/3, 0,
@@ -1470,6 +1605,15 @@ class MemeticEvolution extends BaseSimulation {
             this.ctx.beginPath();
             this.ctx.arc(agent.x, agent.y, agent.size, 0, Math.PI * 2);
             this.ctx.fill();
+            
+            // Warriors have spiky edges
+            if (agent.meme.id === 'warrior') {
+                this.ctx.strokeStyle = 'rgba(150, 50, 50, 0.8)';
+                this.ctx.lineWidth = 1.5;
+                this.ctx.beginPath();
+                this.ctx.arc(agent.x, agent.y, agent.size, 0, Math.PI * 2);
+                this.ctx.stroke();
+            }
             
             // Energy arc
             const energyRatio = agent.energy / agent.maxEnergy;
