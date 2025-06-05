@@ -18,7 +18,12 @@ class ArtificialLifeApp {
             evolution: Evolution,
             cellular1d: Cellular1D,
             slimeMold: SlimeMold,
-            neuralCreatures: NeuralCreatures
+            neuralCreatures: NeuralCreatures,
+            quantumCoherence: QuantumCoherenceColonies,
+            temporalEcho: TemporalEchoNetworks,
+            symbioticNetworks: SymbioticNetworks,
+            memeticEvolution: MemeticEvolution,
+            morphogeneticFields: MorphogeneticFields
         };
         
         // Initialize
