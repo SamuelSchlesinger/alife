@@ -35,7 +35,7 @@ class ArtificialLifeApp {
         this.setupEventListeners();
         
         // Load default simulation
-        this.loadSimulation('gameOfLife');
+        this.loadSimulation('memeticEvolution');
         
         // Start animation loop
         this.animate();
