@@ -64,7 +64,7 @@ class ParticleLife extends BaseSimulation {
         
         // Parameters
         this.parameters = {
-            particleCount: 300,
+            particleCount: 500,
             typeCount: 4,
             interactionRadius: 80,
             forceScale: 0.1,
@@ -357,9 +357,9 @@ class ParticleLife extends BaseSimulation {
                 name: 'particleCount',
                 type: 'range',
                 min: 50,
-                max: 1000,
+                max: 10000,
                 step: 50,
-                defaultValue: 300,
+                defaultValue: 500,
                 label: 'Particle Count'
             },
             {

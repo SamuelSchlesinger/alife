@@ -8,14 +8,14 @@ class Cellular1D extends BaseSimulation {
         this.cells = [];
         this.history = [];
         this.generation = 0;
-        this.rule = 30; // Default to Rule 30
+        this.rule = 146; // Default to Rule 146
         this.ruleBinary = [];
         
         // Parameters
         this.parameters = {
-            rule: 30,
+            rule: 146,
             cellSize: 3,
-            initialPattern: 'single',
+            initialPattern: 'alternating',
             wrapEdges: true,
             colorMode: 'binary',
             speed: 1
@@ -315,7 +315,7 @@ class Cellular1D extends BaseSimulation {
                 min: 0,
                 max: 255,
                 step: 1,
-                defaultValue: 30,
+                defaultValue: 146,
                 label: 'Rule Number'
             },
             {
@@ -340,7 +340,7 @@ class Cellular1D extends BaseSimulation {
                 name: 'initialPattern',
                 type: 'select',
                 options: ['single', 'random', 'alternating', 'density', 'blocks'],
-                defaultValue: 'single',
+                defaultValue: 'alternating',
                 label: 'Initial Pattern'
             },
             {
